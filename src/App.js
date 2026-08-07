@@ -8,6 +8,7 @@ import Questions from "./components/Questions.js";
 import NextQuestion from "./components/NextQuestion.js";
 import Progress from "./components/Progress.js";
 import FinishScreen from "./components/FinishScreen.js";
+import RestartBtn from "./components/RestartBtn.js";
 
 const initialState = {
   questions: [],
@@ -39,6 +40,14 @@ function reducer(state, action) {
       return { ...state, index: state.index + 1, answer: null };
     case "finished":
       return { ...state, status: "finished" };
+    case "restart":
+      return {
+     ...state,
+        status: "ready",
+        index: 0,
+        answer: null,
+        point: 0,
+      };
     default:
       throw new Error("Unknown action");
   }
@@ -93,7 +102,10 @@ export default function App() {
           </>
         )}
         {status === "finished" && (
-          <FinishScreen point={point} maxPonit={maxPoint} />
+          <>
+            <FinishScreen point={point} maxPonit={maxPoint} />
+            <RestartBtn dispatch={dispatch} />
+          </>
         )}
       </Main>
     </div>
