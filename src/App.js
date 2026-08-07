@@ -9,7 +9,10 @@ import NextQuestion from "./components/NextQuestion.js";
 import Progress from "./components/Progress.js";
 import FinishScreen from "./components/FinishScreen.js";
 import RestartBtn from "./components/RestartBtn.js";
+import Footer from "./components/Footer.js";
+import Timer from "./Timer.js";
 
+const SECS_PER_QUESTION = 30;
 const initialState = {
   questions: [],
   //"ready " ,"loading" ,"error ", "active" ,"finished"
@@ -17,6 +20,7 @@ const initialState = {
   index: 0,
   answer: null,
   point: 0,
+  secondsRemaining: null,
 };
 function reducer(state, action) {
   switch (action.type) {
@@ -25,7 +29,11 @@ function reducer(state, action) {
     case "failedData":
       return { ...state, status: "error" };
     case "start":
-      return { ...state, status: "active" };
+      return {
+        ...state,
+        status: "active",
+        secondsRemaining: state.questions.length * SECS_PER_QUESTION,
+      };
     case "newAnswer":
       const question = state.questions.at(state.index);
       return {
@@ -42,21 +50,27 @@ function reducer(state, action) {
       return { ...state, status: "finished" };
     case "restart":
       return {
-     ...state,
+        ...state,
         status: "ready",
         index: 0,
         answer: null,
         point: 0,
+      };
+    case "tick":
+      return {
+        ...state,
+        secondsRemaining: state.secondsRemaining - 1,
+        status: state.secondsRemaining === 0 ? "finished" : state.status,
       };
     default:
       throw new Error("Unknown action");
   }
 }
 export default function App() {
-  const [{ questions, status, index, answer, point }, dispatch] = useReducer(
-    reducer,
-    initialState,
-  );
+  const [
+    { questions, status, index, answer, point, secondsRemaining },
+    dispatch,
+  ] = useReducer(reducer, initialState);
   const numQuestions = questions.length;
   const maxPoint = questions.reduce((prev, cur) => prev + cur.points, 0);
   useEffect(function () {
@@ -93,12 +107,15 @@ export default function App() {
               index={index}
             />
 
-            <NextQuestion
-              dispatch={dispatch}
-              answer={answer}
-              numQuestion={numQuestions}
-              index={index}
-            />
+            <Footer>
+              <Timer dispatch={dispatch} secondsRemaining={secondsRemaining} />
+              <NextQuestion
+                dispatch={dispatch}
+                answer={answer}
+                numQuestion={numQuestions}
+                index={index}
+              />
+            </Footer>
           </>
         )}
         {status === "finished" && (
